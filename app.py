@@ -233,27 +233,30 @@ elif st.session_state.step == 5:
 
         st.divider()
 
-        # ---------------------------------------------------------
+# ---------------------------------------------------------
         # אפשרויות ייצוא, הורדה והדפסה
         # ---------------------------------------------------------
         st.markdown("### 📥 ייצוא, הורדה והדפסת הדוח")
 
-        # כפתור הדפסה / שמירה כ-PDF
-        st.markdown("""
-        <button onclick="window.print()" style="
-            background-color: #27ae60;
-            color: white;
-            padding: 10px 20px;
-            font-size: 16px;
-            font-weight: bold;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            width: 100%;
-            margin-bottom: 15px;">
-            🖨️ הדפס / שמור כ-PDF
-        </button>
-        """, unsafe_allow_html=True)
+        # הנחיה ברורה למשתמשי ניידים
+        st.info("💡 **משתמש בטלפון נייד?** ניתן לשמור כ-PDF בקלות ע\"י לחיצה על תפריט הדפדפן (3 נקודות ב-Chrome / שיתוף ב-Safari) -> בחירה ב-**'הדפס'** -> ושמירה כ-**PDF**.")
+
+        # כפתור הדפסה גמיש שפועל גם במחשב וגם בדפדפנים ניידים תומכים
+        st.components.v1.html("""
+            <button onclick="window.parent.print()" style="
+                background-color: #27ae60;
+                color: white;
+                padding: 12px 20px;
+                font-size: 16px;
+                font-weight: bold;
+                border: none;
+                border-radius: 8px;
+                cursor: pointer;
+                width: 100%;
+                direction: rtl;">
+                🖨️ הדפס / שמור כ-PDF
+            </button>
+        """, height=60)
 
         # הכנת תכני הקבצים להורדה
         txt_report = f"דוח מוצא גנטי ועץ יוחסין - {child_name}\n"
