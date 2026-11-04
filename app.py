@@ -6,18 +6,52 @@ st.set_page_config(
     layout="centered"
 )
 
-# הגדרת כיוון RTL לממשק בעברית
+# -------------------------------------------------------------
+# 1. עיצוב RTL (מימין לשמאל) + סגנון ייעודי להדפסה ו-PDF
+# -------------------------------------------------------------
 st.markdown("""
 <style>
-    .main { direction: rtl; text-align: right; }
-    div[data-baseweb="select"] { direction: rtl; }
-    input { text-align: right; }
+    /* יישור כללי מימין לשמאל */
+    .stAppViewContainer, .main, .block-container {
+        direction: rtl !important;
+        text-align: right !important;
+    }
+    
+    /* יישור שדות קלט, תפריטים ותיבות טקסט */
+    div[data-baseweb="input"], input, textarea, div[data-baseweb="select"] {
+        direction: rtl !important;
+        text-align: right !important;
+    }
+    
+    /* יישור כותרות ותוויות */
+    label, p, h1, h2, h3, h4, h5, h6, .stMarkdown {
+        text-align: right !important;
+        direction: rtl !important;
+    }
+
+    /* יישור טבלאות */
+    .stDataFrame {
+        direction: rtl !important;
+    }
+
+    /* סגנונות מיוחדים בעת הדפסה או שמירה כ-PDF */
+    @media print {
+        /* הסתרת כפתורים, תפריטים וסרגלי כלים בעת הדפסה */
+        .stButton, button, header, footer, [data-testid="stHeader"] {
+            display: none !important;
+        }
+        /* הרחבת התוכן לרוחב הדף המלא */
+        .main .block-container {
+            max-width: 100% !important;
+            padding: 0 !important;
+        }
+    }
 </style>
 """, unsafe_allow_html=True)
 
 st.title("🌳 מחשבון עץ יוחסין ומוצא גנטי")
 
-# ניהול מצב השלבים
+# ניהול מצבי השלבים
 if "step" not in st.session_state:
     st.session_state.step = 1
 if "data" not in st.session_state:
@@ -60,16 +94,16 @@ elif st.session_state.step == 2:
 
     col1, col2 = st.columns(2)
     with col1:
-        if st.button("< חזור"):
-            st.session_state.step = 1
-            st.rerun()
-    with col2:
         if st.button("המשך לשלב 3 >"):
             st.session_state.data["gf_p"] = gf_p or f"סבא ({father_name})"
             st.session_state.data["gm_p"] = gm_p or f"סבתא ({father_name})"
             st.session_state.data["gf_m"] = gf_m or f"סבא ({mother_name})"
             st.session_state.data["gm_m"] = gm_m or f"סבתא ({mother_name})"
             st.session_state.step = 3
+            st.rerun()
+    with col2:
+        if st.button("< חזור"):
+            st.session_state.step = 1
             st.rerun()
 
 # ---------- שלב 3: סבי-רבא ----------
@@ -98,13 +132,13 @@ elif st.session_state.step == 3:
 
     col1, col2 = st.columns(2)
     with col1:
-        if st.button("< חזור"):
-            st.session_state.step = 2
-            st.rerun()
-    with col2:
         if st.button("המשך לשלב 4 >"):
             st.session_state.data["gg_names"] = gg_dict
             st.session_state.step = 4
+            st.rerun()
+    with col2:
+        if st.button("< חזור"):
+            st.session_state.step = 2
             st.rerun()
 
 # ---------- שלב 4: דור 5 (סבי-רבא-רבא) והזנת מוצא ----------
@@ -138,16 +172,16 @@ elif st.session_state.step == 4:
 
     col1, col2 = st.columns(2)
     with col1:
-        if st.button("< חזור"):
-            st.session_state.step = 3
-            st.rerun()
-    with col2:
         if st.button("חשב מוצא והצג תוצאות 📊"):
             st.session_state.data["ggg_data"] = ggg_data
             st.session_state.step = 5
             st.rerun()
+    with col2:
+        if st.button("< חזור"):
+            st.session_state.step = 3
+            st.rerun()
 
-# ---------- שלב 5: הצגת התוצאות והתרשימים ----------
+# ---------- שלב 5: התוצאות, התרשימים וכפתורי הייצוא ----------
 elif st.session_state.step == 5:
     child_name = st.session_state.data["child"]
     st.subheader(f"📊 תוצאות מוצא גנטי עבור {child_name}")
@@ -177,25 +211,79 @@ elif st.session_state.step == 5:
     else:
         factor = 100.0 / total_weight
 
-        # 1. דוח אחוזים
-        st.markdown("### 🧬 אחוזי מוצא גנטי משוערים")
         eth_df = pd.DataFrame([
             {"מוצא": k, "אחוז": round(v * factor, 1)}
             for k, v in sorted(eth_counts.items(), key=lambda x: x[1], reverse=True)
         ])
-        st.dataframe(eth_df, use_container_width=True, hide_index=True)
 
-        # 2. תרשים עמודות - מוצאים מפורטים
-        st.markdown("### 📈 פילוח מוצא מפורט")
-        st.bar_chart(eth_df.set_index("מוצא"))
-
-        # 3. תרשים עוגה - חלוקה עדתית
-        st.markdown("### ☯️ חלוקה עדתית (אשכנזי / מזרחי)")
         cat_df = pd.DataFrame([
             {"עדתי": k, "אחוז": round((v / total_weight) * 100, 1)}
             for k, v in cat_counts.items() if v > 0
         ])
+
+        # הצגת הנתונים
+        st.markdown("### 🧬 אחוזי מוצא גנטי משוערים")
+        st.dataframe(eth_df, use_container_width=True, hide_index=True)
+
+        st.markdown("### 📈 פילוח מוצא מפורט")
+        st.bar_chart(eth_df.set_index("מוצא"))
+
+        st.markdown("### ☯️ חלוקה עדתית (אשכנזי / מזרחי)")
         st.dataframe(cat_df, use_container_width=True, hide_index=True)
+
+        st.divider()
+
+        # ---------------------------------------------------------
+        # אפשרויות ייצוא, הורדה והדפסה
+        # ---------------------------------------------------------
+        st.markdown("### 📥 ייצוא, הורדה והדפסת הדוח")
+
+        # כפתור הדפסה / שמירה כ-PDF
+        st.markdown("""
+        <button onclick="window.print()" style="
+            background-color: #27ae60;
+            color: white;
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 15px;">
+            🖨️ הדפס / שמור כ-PDF
+        </button>
+        """, unsafe_allow_html=True)
+
+        # הכנת תכני הקבצים להורדה
+        txt_report = f"דוח מוצא גנטי ועץ יוחסין - {child_name}\n"
+        txt_report += "=" * 40 + "\n\n"
+        txt_report += "פירוט מוצא גנטי:\n"
+        for _, row in eth_df.iterrows():
+            txt_report += f"- {row['מוצא']}: {row['אחוז']}%\n"
+        txt_report += "\nחלוקה עדתית:\n"
+        for _, row in cat_df.iterrows():
+            txt_report += f"- {row['עדתי']}: {row['אחוז']}%\n"
+
+        csv_data = eth_df.to_csv(index=False).encode('utf-8-sig')
+
+        col_d1, col_d2 = st.columns(2)
+        with col_d1:
+            st.download_button(
+                label="📄 הורד דוח טקסט (TXT)",
+                data=txt_report,
+                file_name=f"report_{child_name}.txt",
+                mime="text/plain"
+            )
+        with col_d2:
+            st.download_button(
+                label="📊 הורד נתונים (CSV)",
+                data=csv_data,
+                file_name=f"report_{child_name}.csv",
+                mime="text/csv"
+            )
+
+        st.divider()
 
         if st.button("התחל מחדש 🔄"):
             st.session_state.step = 1
